@@ -1,0 +1,61 @@
+
+services:
+  sql-server:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: mssql-server-2019
+    ports:
+      - "1433:1433"
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "Yourpass@"
+      MSSQL_PID: "Developer"
+    volumes:
+      - sql-server-data:/var/opt/mssql
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq-server
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: "guest"
+      RABBITMQ_DEFAULT_PASS: "guest"
+
+  redis:
+    image: redis:latest
+    container_name: redis-cache
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+  backend-api:
+    container_name: payment-backend-api
+    build:
+      context: .
+      dockerfile: ./WebAPI/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      ASPNETCORE_URLS: "http://+:8080"
+      ConnectionStrings__DefaultConnection: "Server=sql-server,1433;Database=PaymentSystem;User=sa;Password=Yourpass@;TrustServerCertificate=True"
+      RabbitMQ__Host: "rabbitmq"
+      RabbitMQ__User: "guest"
+      RabbitMQ__Pass: "guest"
+      ConnectionStrings__Redis: "redis:6379"
+      EmailSettings__SmtpHost: "smtp.gmail.com"
+      EmailSettings__SmtpUser: "your-mail@gmail.com"
+      EmailSettings__SmtpPass: "your-app-password"
+      EmailSettings__SmtpPort: "587"
+      EmailSettings__To: "recipient@example.com"
+      
+    depends_on:
+      - sql-server
+      - rabbitmq
+      - redis
+
+volumes:
+  sql-server-data:
+  redis-data:

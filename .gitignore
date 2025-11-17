@@ -1,0 +1,10 @@
+**/Build/
+**/bin/
+**/obj/
+**/out/
+**/.vs/
+**/.idea/
+.vscode/
+.env
+.fake
+#docker-compose -f docker-compose-production.yml -p microservices up --build -d
